@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import team.themoment.sdk.exception.ExpectedException;
 import zaman.dongnaemoa.domain.neighborhood.dto.JoinNeighborhoodRequest;
 import zaman.dongnaemoa.domain.neighborhood.dto.NeighborhoodResponse;
@@ -35,6 +36,7 @@ class NeighborhoodServiceTest {
     @BeforeEach
     void setUp() {
         neighborhoodService = new NeighborhoodService(neighborhoodRepository, userRepository);
+        ReflectionTestUtils.setField(neighborhoodService, "maxJoinDistanceMeters", 5000.0);
     }
 
     private Neighborhood neighborhood(String name, double lat, double lon) {
@@ -62,6 +64,29 @@ class NeighborhoodServiceTest {
 
         assertThat(response.name()).isEqualTo("청운동");
         assertThat(user.getNeighborhood()).isEqualTo(near);
+    }
+
+    @Test
+    @DisplayName("가장 가까운 동네도 최대 가입 거리를 초과하면 가입할 수 없다")
+    void join_nearestTooFar_throwsBadRequest() {
+        User user = User.builder().email("user@test.com").password("pw").nickname("nick").neighborhood(null).build();
+        Neighborhood far = neighborhood("여의도동", 37.5219, 126.9245);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(neighborhoodRepository.findAll()).thenReturn(List.of(far));
+
+        assertThatThrownBy(() -> neighborhoodService.join(1L, new JoinNeighborhoodRequest(35.1796, 129.0756)))
+                .isInstanceOf(ExpectedException.class)
+                .hasMessageContaining("가입 가능한 동네가 근처에 없습니다");
+        assertThat(user.getNeighborhood()).isNull();
+    }
+
+    @Test
+    @DisplayName("좌표가 NaN이면 가입할 수 없다")
+    void join_nanCoordinate_throwsBadRequest() {
+        assertThatThrownBy(() -> neighborhoodService.join(1L, new JoinNeighborhoodRequest(Double.NaN, 127.0)))
+                .isInstanceOf(ExpectedException.class)
+                .hasMessageContaining("유효하지 않은 좌표");
     }
 
     @Test

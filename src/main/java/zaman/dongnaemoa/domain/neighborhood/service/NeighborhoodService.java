@@ -2,6 +2,7 @@ package zaman.dongnaemoa.domain.neighborhood.service;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,12 +22,23 @@ public class NeighborhoodService {
     private final NeighborhoodRepository neighborhoodRepository;
     private final UserRepository userRepository;
 
+    @Value("${neighborhood.join.max-distance-meters:5000}")
+    private double maxJoinDistanceMeters;
+
     @Transactional
     public NeighborhoodResponse join(Long userId, JoinNeighborhoodRequest request) {
+        if (!Double.isFinite(request.latitude()) || !Double.isFinite(request.longitude())) {
+            throw new ExpectedException("유효하지 않은 좌표입니다.", HttpStatus.BAD_REQUEST);
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ExpectedException("사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
         Neighborhood nearest = findNearest(request.latitude(), request.longitude());
+        double distance = GeoUtils.distanceMeters(request.latitude(), request.longitude(),
+                nearest.getLatitude().doubleValue(), nearest.getLongitude().doubleValue());
+        if (distance > maxJoinDistanceMeters) {
+            throw new ExpectedException("가입 가능한 동네가 근처에 없습니다.", HttpStatus.BAD_REQUEST);
+        }
         user.moveTo(nearest);
         return NeighborhoodResponse.from(nearest);
     }
