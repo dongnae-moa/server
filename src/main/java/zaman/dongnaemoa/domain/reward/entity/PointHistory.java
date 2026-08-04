@@ -40,20 +40,16 @@ public class PointHistory extends BaseTimeEntity {
     @Column(nullable = false)
     private Integer pointAmount;
 
-    @Column(nullable = false)
-    private Integer xpAmount;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private PointReason reason;
 
     @Builder
     private PointHistory(User user, QuestParticipation questParticipation, Integer pointAmount,
-                          Integer xpAmount, PointReason reason) {
+                          PointReason reason) {
         this.user = user;
         this.questParticipation = questParticipation;
         this.pointAmount = pointAmount;
-        this.xpAmount = xpAmount;
         this.reason = reason;
     }
 }

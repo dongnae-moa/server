@@ -40,9 +40,6 @@ public class Neighborhood extends BaseTimeEntity {
     @Column(nullable = false, precision = 9, scale = 6)
     private BigDecimal longitude;
 
-    @Column(nullable = false)
-    private Integer communityXp;
-
     @Version
     private Long version;
 
@@ -55,10 +52,5 @@ public class Neighborhood extends BaseTimeEntity {
         this.sigungu = sigungu;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.communityXp = 0;
-    }
-
-    public void addCommunityXp(int amount) {
-        this.communityXp += amount;
     }
 }

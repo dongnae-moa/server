@@ -41,9 +41,6 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private Integer point;
 
-    @Column(nullable = false)
-    private Integer xp;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role;
@@ -62,7 +59,6 @@ public class User extends BaseTimeEntity {
         this.nickname = nickname;
         this.neighborhood = neighborhood;
         this.point = 0;
-        this.xp = 0;
         this.role = Role.USER;
     }
 
@@ -70,8 +66,7 @@ public class User extends BaseTimeEntity {
         this.neighborhood = neighborhood;
     }
 
-    public void gainReward(int pointAmount, int xpAmount) {
+    public void gainPoint(int pointAmount) {
         this.point += pointAmount;
-        this.xp += xpAmount;
     }
 }

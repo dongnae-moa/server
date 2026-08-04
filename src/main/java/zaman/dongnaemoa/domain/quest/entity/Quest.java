@@ -40,12 +40,6 @@ public class Quest extends BaseTimeEntity {
     @Column(nullable = false)
     private Integer rewardPoint;
 
-    @Column(nullable = false)
-    private Integer rewardXp;
-
-    @Column(nullable = false)
-    private Integer communityXpReward;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private QuestStatus status;
@@ -60,13 +54,11 @@ public class Quest extends BaseTimeEntity {
 
     @Builder
     private Quest(String title, String description, String imageUrl, Integer rewardPoint,
-                   Integer rewardXp, Integer communityXpReward, User author, Neighborhood neighborhood) {
+                   User author, Neighborhood neighborhood) {
         this.title = title;
         this.description = description;
         this.imageUrl = imageUrl;
         this.rewardPoint = rewardPoint;
-        this.rewardXp = rewardXp;
-        this.communityXpReward = communityXpReward;
         this.author = author;
         this.neighborhood = neighborhood;
         this.status = QuestStatus.RECRUITING;
