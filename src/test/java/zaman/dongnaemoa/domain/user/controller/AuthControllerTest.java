@@ -14,10 +14,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import zaman.dongnaemoa.domain.user.dto.LoginRequest;
 import zaman.dongnaemoa.domain.user.dto.SignUpRequest;
-import zaman.dongnaemoa.support.PostgresTestContainerSupport;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-class AuthControllerTest extends PostgresTestContainerSupport {
+class AuthControllerTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
