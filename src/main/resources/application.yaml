@@ -9,3 +9,12 @@ spring:
     hibernate:
       ddl-auto: update
     open-in-view: false
+
+sdk:
+  swagger:
+    title: "동네모아 API"
+    description: "동네모아(Dongnae-Moa) API Documentation"
+    version: "v1"
+    group: "API"
+    paths-to-match:
+      - "/v1/**"
