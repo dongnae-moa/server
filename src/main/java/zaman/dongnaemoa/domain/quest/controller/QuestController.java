@@ -2,6 +2,8 @@ package zaman.dongnaemoa.domain.quest.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -51,7 +53,30 @@ public class QuestController {
                     + "제목/설명을 바탕으로 AI가 자동으로 산정하므로 요청에 포함하지 않는다."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "등록 성공"),
+            @ApiResponse(responseCode = "201", description = "등록 성공", content = @Content(
+                    examples = @ExampleObject(value = """
+                            {
+                              "status": "CREATED",
+                              "code": 201,
+                              "message": "퀘스트가 등록되었습니다.",
+                              "data": {
+                                "id": 1,
+                                "title": "분리배출 안내 스티커 훼손 확인",
+                                "description": "배출장 안내 스티커가 떨어져 주민들이 요일을 헷갈리고 있어요.",
+                                "imageUrl": "https://.../photo.jpg",
+                                "rewardPoint": 30,
+                                "status": "RECRUITING",
+                                "minutes": 6,
+                                "difficulty": "보통",
+                                "checkpoints": ["요일 안내가 읽히는지 확인해요", "훼손된 스티커 위치를 사진에 담아요"],
+                                "authorNickname": "글쓴사람 닉네임",
+                                "neighborhood": {"name": "청운동", "sido": "서울특별시", "sigungu": "종로구"},
+                                "latitude": 37.5665,
+                                "longitude": 126.9780,
+                                "distanceMeters": null
+                              }
+                            }
+                            """))),
             @ApiResponse(responseCode = "400", description = "요청 값 검증 실패 또는 동네 미가입"),
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
@@ -78,6 +103,34 @@ public class QuestController {
                     + "현재 위치(latitude, longitude)를 기준으로 각 퀘스트까지의 거리(미터)를 계산하여 "
                     + "가까운 순으로 정렬해 반환한다."
     )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(
+                    examples = @ExampleObject(value = """
+                            {
+                              "status": "OK",
+                              "code": 200,
+                              "message": "조회에 성공했습니다.",
+                              "data": [
+                                {
+                                  "id": 1,
+                                  "title": "분리배출 안내 스티커 훼손 확인",
+                                  "description": "배출장 안내 스티커가 떨어져 주민들이 요일을 헷갈리고 있어요.",
+                                  "imageUrl": "https://.../photo.jpg",
+                                  "rewardPoint": 30,
+                                  "status": "RECRUITING",
+                                  "minutes": 6,
+                                  "difficulty": "보통",
+                                  "checkpoints": ["요일 안내가 읽히는지 확인해요", "훼손된 스티커 위치를 사진에 담아요"],
+                                  "authorNickname": "글쓴사람 닉네임",
+                                  "neighborhood": {"name": "청운동", "sido": "서울특별시", "sigungu": "종로구"},
+                                  "latitude": 37.5665,
+                                  "longitude": 126.9780,
+                                  "distanceMeters": 380
+                                }
+                              ]
+                            }
+                            """)))
+    })
     @GetMapping
     public CommonApiResponse<List<QuestResponse>> findByNeighborhood(
             @Parameter(description = "조회할 동네 ID", example = "1") @RequestParam Long neighborhoodId,
