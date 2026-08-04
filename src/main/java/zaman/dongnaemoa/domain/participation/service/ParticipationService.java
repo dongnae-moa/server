@@ -71,7 +71,11 @@ public class ParticipationService {
             throw new ExpectedException("퀘스트 등록자만 완료 여부를 결정할 수 있습니다.", HttpStatus.FORBIDDEN);
         }
 
-        participation.approve(LocalDateTime.now());
+        try {
+            participation.approve(LocalDateTime.now());
+        } catch (IllegalStateException e) {
+            throw new ExpectedException(e.getMessage(), HttpStatus.CONFLICT);
+        }
 
         User participant = participation.getParticipant();
         participant.gainPoint(quest.getRewardPoint());
@@ -92,7 +96,11 @@ public class ParticipationService {
         if (!participation.getQuest().getAuthor().getId().equals(authorId)) {
             throw new ExpectedException("퀘스트 등록자만 완료 여부를 결정할 수 있습니다.", HttpStatus.FORBIDDEN);
         }
-        participation.reject(rejectionReason, LocalDateTime.now());
+        try {
+            participation.reject(rejectionReason, LocalDateTime.now());
+        } catch (IllegalStateException e) {
+            throw new ExpectedException(e.getMessage(), HttpStatus.CONFLICT);
+        }
         return ParticipationResponse.from(participation);
     }
 
