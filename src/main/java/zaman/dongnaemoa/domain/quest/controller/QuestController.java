@@ -61,9 +61,9 @@ public class QuestController {
             description = "특정 동네에 등록된 모든 퀘스트를 상태와 무관하게 조회한다."
     )
     @GetMapping
-    public List<QuestResponse> findByNeighborhood(
+    public CommonApiResponse<List<QuestResponse>> findByNeighborhood(
             @Parameter(description = "조회할 동네 ID", example = "1") @RequestParam Long neighborhoodId) {
-        return questService.findByNeighborhood(neighborhoodId);
+        return CommonApiResponse.success("조회에 성공했습니다.", questService.findByNeighborhood(neighborhoodId));
     }
 
     @Operation(
@@ -76,8 +76,9 @@ public class QuestController {
             @ApiResponse(responseCode = "404", description = "퀘스트를 찾을 수 없음")
     })
     @DeleteMapping("/{questId}")
-    public void delete(@AuthenticationPrincipal CustomUserDetails principal,
-                        @Parameter(description = "삭제할 퀘스트 ID") @PathVariable Long questId) {
+    public CommonApiResponse<Void> delete(@AuthenticationPrincipal CustomUserDetails principal,
+                                           @Parameter(description = "삭제할 퀘스트 ID") @PathVariable Long questId) {
         questService.delete(principal.getUserId(), questId);
+        return CommonApiResponse.success("퀘스트가 삭제되었습니다.");
     }
 }

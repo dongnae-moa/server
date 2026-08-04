@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import team.themoment.sdk.response.CommonApiResponse;
 import zaman.dongnaemoa.domain.participation.dto.ParticipationResponse;
 import zaman.dongnaemoa.domain.participation.dto.RejectParticipationRequest;
 import zaman.dongnaemoa.domain.participation.dto.SubmitProofRequest;
@@ -45,9 +46,11 @@ public class ParticipationController {
             @ApiResponse(responseCode = "409", description = "이미 참여한 퀘스트")
     })
     @PostMapping("/quests/{questId}/participations")
-    public ParticipationResponse join(@AuthenticationPrincipal CustomUserDetails principal,
-                                       @Parameter(description = "참여할 퀘스트 ID") @PathVariable Long questId) {
-        return participationService.join(principal.getUserId(), questId);
+    public CommonApiResponse<ParticipationResponse> join(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @Parameter(description = "참여할 퀘스트 ID") @PathVariable Long questId) {
+        ParticipationResponse response = participationService.join(principal.getUserId(), questId);
+        return CommonApiResponse.success("퀘스트 참여에 성공했습니다.", response);
     }
 
     @Operation(
@@ -62,13 +65,15 @@ public class ParticipationController {
             @ApiResponse(responseCode = "404", description = "참여 정보를 찾을 수 없음")
     })
     @PostMapping(value = "/participations/{participationId}/proof", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ParticipationResponse submitProof(
+    public CommonApiResponse<ParticipationResponse> submitProof(
             @AuthenticationPrincipal CustomUserDetails principal,
             @Parameter(description = "참여 ID") @PathVariable Long participationId,
             @RequestPart("request") SubmitProofRequest request,
             @Parameter(description = "인증 이미지 파일 (선택)")
             @RequestPart(value = "image", required = false) MultipartFile image) {
-        return participationService.submitProof(principal.getUserId(), participationId, request, image);
+        ParticipationResponse response =
+                participationService.submitProof(principal.getUserId(), participationId, request, image);
+        return CommonApiResponse.success("인증 제출에 성공했습니다.", response);
     }
 
     @Operation(
@@ -82,9 +87,11 @@ public class ParticipationController {
             @ApiResponse(responseCode = "404", description = "참여 정보를 찾을 수 없음")
     })
     @PostMapping("/participations/{participationId}/approve")
-    public ParticipationResponse approve(@AuthenticationPrincipal CustomUserDetails principal,
-                                          @Parameter(description = "참여 ID") @PathVariable Long participationId) {
-        return participationService.approve(principal.getUserId(), participationId);
+    public CommonApiResponse<ParticipationResponse> approve(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @Parameter(description = "참여 ID") @PathVariable Long participationId) {
+        ParticipationResponse response = participationService.approve(principal.getUserId(), participationId);
+        return CommonApiResponse.success("승인에 성공했습니다. 참여자에게 포인트가 지급되었습니다.", response);
     }
 
     @Operation(
@@ -97,9 +104,12 @@ public class ParticipationController {
             @ApiResponse(responseCode = "404", description = "참여 정보를 찾을 수 없음")
     })
     @PostMapping("/participations/{participationId}/reject")
-    public ParticipationResponse reject(@AuthenticationPrincipal CustomUserDetails principal,
-                                         @Parameter(description = "참여 ID") @PathVariable Long participationId,
-                                         @Valid @RequestBody RejectParticipationRequest request) {
-        return participationService.reject(principal.getUserId(), participationId, request.rejectionReason());
+    public CommonApiResponse<ParticipationResponse> reject(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @Parameter(description = "참여 ID") @PathVariable Long participationId,
+            @Valid @RequestBody RejectParticipationRequest request) {
+        ParticipationResponse response =
+                participationService.reject(principal.getUserId(), participationId, request.rejectionReason());
+        return CommonApiResponse.success("반려 처리되었습니다.", response);
     }
 }

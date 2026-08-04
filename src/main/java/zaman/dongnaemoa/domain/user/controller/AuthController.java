@@ -50,7 +50,8 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "이메일 또는 비밀번호가 올바르지 않음")
     })
     @PostMapping("/login")
-    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
-        return authService.login(request);
+    public CommonApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = authService.login(request);
+        return CommonApiResponse.success("로그인에 성공했습니다.", response);
     }
 }

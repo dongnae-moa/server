@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import team.themoment.sdk.response.CommonApiResponse;
 import zaman.dongnaemoa.domain.neighborhood.dto.JoinNeighborhoodRequest;
 import zaman.dongnaemoa.domain.neighborhood.dto.NeighborhoodResponse;
 import zaman.dongnaemoa.domain.neighborhood.service.NeighborhoodService;
@@ -40,9 +41,10 @@ public class NeighborhoodController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없거나 등록된 동네 데이터가 없음")
     })
     @PostMapping("/join")
-    public NeighborhoodResponse join(@AuthenticationPrincipal CustomUserDetails principal,
-                                      @Valid @RequestBody JoinNeighborhoodRequest request) {
-        return neighborhoodService.join(principal.getUserId(), request);
+    public CommonApiResponse<NeighborhoodResponse> join(@AuthenticationPrincipal CustomUserDetails principal,
+                                                          @Valid @RequestBody JoinNeighborhoodRequest request) {
+        NeighborhoodResponse response = neighborhoodService.join(principal.getUserId(), request);
+        return CommonApiResponse.success("동네 가입에 성공했습니다.", response);
     }
 
     @Operation(
@@ -51,8 +53,8 @@ public class NeighborhoodController {
                     + "neighborhoodId와 그 동네 이름/지역 정보를 매핑하기 위해 프론트엔드에서 사용한다."
     )
     @GetMapping
-    public List<NeighborhoodResponse> findAll() {
-        return neighborhoodService.findAll();
+    public CommonApiResponse<List<NeighborhoodResponse>> findAll() {
+        return CommonApiResponse.success("조회에 성공했습니다.", neighborhoodService.findAll());
     }
 
     @Operation(
@@ -64,8 +66,8 @@ public class NeighborhoodController {
             @ApiResponse(responseCode = "404", description = "동네를 찾을 수 없음")
     })
     @GetMapping("/{neighborhoodId}")
-    public NeighborhoodResponse findById(
+    public CommonApiResponse<NeighborhoodResponse> findById(
             @Parameter(description = "조회할 동네 ID", example = "1") @PathVariable Long neighborhoodId) {
-        return neighborhoodService.findById(neighborhoodId);
+        return CommonApiResponse.success("조회에 성공했습니다.", neighborhoodService.findById(neighborhoodId));
     }
 }
