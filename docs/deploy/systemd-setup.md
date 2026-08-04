@@ -23,6 +23,7 @@ Environment=DB_USERNAME=postgres
 Environment=DB_PASSWORD=여기에_실제_DB_비밀번호
 Environment=JWT_SECRET=여기에_실제_JWT_시크릿
 Environment=GROQ_API_KEY=여기에_실제_Groq_API_키
+Environment=FILE_PUBLIC_BASE_URL=http://165.140.22.60:8080/files
 
 [Install]
 WantedBy=multi-user.target
@@ -34,6 +35,9 @@ EOF
 > `GROQ_API_KEY`는 https://console.groq.com 에서 발급받는다. 비워두면 퀘스트 등록 시 AI 분석 대신
 > 고정 기본값(minutes=10, rewardPoint=50, difficulty=NORMAL, checkpoints=[])으로 자동 대체되어
 > 서비스는 정상 동작한다(등록 자체가 막히지 않음).
+> `FILE_PUBLIC_BASE_URL`을 설정하지 않으면 업로드 이미지의 `imageUrl`이 기본값인
+> `http://localhost:8080/files/...`로 응답되어 클라이언트에서 이미지를 불러올 수 없다.
+> 반드시 외부에서 접근 가능한 서버 주소로 설정할 것.
 
 ## 2. 서비스 등록 및 활성화
 

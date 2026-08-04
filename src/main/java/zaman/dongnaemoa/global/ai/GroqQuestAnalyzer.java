@@ -21,7 +21,8 @@ public class GroqQuestAnalyzer {
     private static final String MODEL = "llama-3.1-8b-instant";
     private static final String SYSTEM_PROMPT =
             "퀘스트 제목과 설명을 보고 아래 JSON 형식으로만 답해. 다른 말은 하지 마.\n"
-                    + "{\"minutes\":정수,\"rewardPoint\":정수(10~200),\"difficulty\":\"EASY\"|\"NORMAL\"|\"HARD\","
+                    + "{\"minutes\":정수(5~30, 현장에서 실제로 걸리는 짧은 작업 기준),"
+                    + "\"rewardPoint\":정수(10~200),\"difficulty\":\"EASY\"|\"NORMAL\"|\"HARD\","
                     + "\"checkpoints\":[\"문자열\",\"문자열\"]}\n"
                     + "checkpoints는 2~4개, 각 15자 이내의 한국어 확인 항목.";
 
