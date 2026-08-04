@@ -24,7 +24,9 @@ public class GroqQuestAnalyzer {
                     + "{\"minutes\":정수(5~30, 현장에서 실제로 걸리는 짧은 작업 기준),"
                     + "\"rewardPoint\":정수(10~200),\"difficulty\":\"EASY\"|\"NORMAL\"|\"HARD\","
                     + "\"checkpoints\":[\"문자열\",\"문자열\"]}\n"
-                    + "checkpoints는 2~4개, 각 15자 이내의 한국어 확인 항목.";
+                    + "checkpoints는 2~4개, 각 15자 이내의 한국어 확인 항목.\n"
+                    + "단, 현장에 가지 않고 상태를 신고/제보만 하면 되는 퀘스트(예: 불법투기 신고, 파손 신고, "
+                    + "민원 제보)라면 minutes는 1, rewardPoint는 10으로 고정해.";
 
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
