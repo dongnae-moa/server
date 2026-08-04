@@ -1,14 +1,18 @@
 name: CD
 
 on:
-  push:
+  workflow_run:
+    workflows:
+      - CI
     branches:
       - main
+    types:
+      - completed
   workflow_dispatch:
-
 
 jobs:
   deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Deploy via SSH
@@ -32,8 +36,8 @@ jobs:
               cd "$APP_DIR"
             fi
 
-            chmod +x gradlew
-            ./gradlew clean bootJar -x test
+            source "$HOME/.sdkman/bin/sdkman-init.sh"
+            gradle clean bootJar -x test
 
             sudo systemctl restart dongnae-moa
             sudo systemctl status dongnae-moa --no-pager
