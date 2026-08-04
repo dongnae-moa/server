@@ -1,5 +1,7 @@
 package zaman.dongnaemoa.domain.quest.service;
 
+import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,6 +15,7 @@ import zaman.dongnaemoa.domain.quest.entity.Quest;
 import zaman.dongnaemoa.domain.quest.repository.QuestRepository;
 import zaman.dongnaemoa.domain.user.entity.User;
 import zaman.dongnaemoa.domain.user.repository.UserRepository;
+import zaman.dongnaemoa.global.geo.GeoUtils;
 import zaman.dongnaemoa.global.storage.FileStorageService;
 
 @Service
@@ -40,15 +43,20 @@ public class QuestService {
                 .rewardPoint(request.rewardPoint())
                 .author(author)
                 .neighborhood(author.getNeighborhood())
+                .latitude(BigDecimal.valueOf(request.latitude()))
+                .longitude(BigDecimal.valueOf(request.longitude()))
                 .build();
 
         return QuestResponse.from(questRepository.save(quest));
     }
 
     @Transactional(readOnly = true)
-    public List<QuestResponse> findByNeighborhood(Long neighborhoodId) {
+    public List<QuestResponse> findByNeighborhood(Long neighborhoodId, double latitude, double longitude) {
         return questRepository.findByNeighborhoodId(neighborhoodId).stream()
-                .map(QuestResponse::from)
+                .map(quest -> QuestResponse.from(quest, GeoUtils.distanceMeters(
+                        latitude, longitude,
+                        quest.getLatitude().doubleValue(), quest.getLongitude().doubleValue())))
+                .sorted(Comparator.comparingDouble(QuestResponse::distanceMeters))
                 .toList();
     }
 

@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -52,15 +53,23 @@ public class Quest extends BaseTimeEntity {
     @JoinColumn(name = "neighborhood_id", nullable = false)
     private Neighborhood neighborhood;
 
+    @Column(nullable = false, precision = 9, scale = 6)
+    private BigDecimal latitude;
+
+    @Column(nullable = false, precision = 9, scale = 6)
+    private BigDecimal longitude;
+
     @Builder
     private Quest(String title, String description, String imageUrl, Integer rewardPoint,
-                   User author, Neighborhood neighborhood) {
+                   User author, Neighborhood neighborhood, BigDecimal latitude, BigDecimal longitude) {
         this.title = title;
         this.description = description;
         this.imageUrl = imageUrl;
         this.rewardPoint = rewardPoint;
         this.author = author;
         this.neighborhood = neighborhood;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.status = QuestStatus.RECRUITING;
     }
 

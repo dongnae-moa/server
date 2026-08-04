@@ -64,7 +64,7 @@ class QuestServiceTest {
     void create_withoutImage_success() {
         User author = User.builder().email("a@test.com").password("pw").nickname("nick")
                 .neighborhood(neighborhood()).build();
-        CreateQuestRequest request = new CreateQuestRequest("쓰레기 치우기", "설명", 500);
+        CreateQuestRequest request = new CreateQuestRequest("쓰레기 치우기", "설명", 500, 37.58, 126.97);
         Quest saved = Quest.builder().title(request.title()).description(request.description())
                 .rewardPoint(request.rewardPoint()).author(author).neighborhood(author.getNeighborhood()).build();
 
@@ -83,7 +83,7 @@ class QuestServiceTest {
     void create_withImage_storesFileAndSetsUrl() {
         User author = User.builder().email("a@test.com").password("pw").nickname("nick")
                 .neighborhood(neighborhood()).build();
-        CreateQuestRequest request = new CreateQuestRequest("쓰레기 치우기", "설명", 500);
+        CreateQuestRequest request = new CreateQuestRequest("쓰레기 치우기", "설명", 500, 37.58, 126.97);
         MultipartFile image = new MockMultipartFile("image", "photo.jpg", "image/jpeg", "content".getBytes());
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(author));
@@ -99,7 +99,7 @@ class QuestServiceTest {
     @DisplayName("동네에 가입하지 않은 사용자는 퀘스트를 등록할 수 없다")
     void create_userWithoutNeighborhood_throwsBadRequest() {
         User author = User.builder().email("a@test.com").password("pw").nickname("nick").neighborhood(null).build();
-        CreateQuestRequest request = new CreateQuestRequest("제목", "설명", 500);
+        CreateQuestRequest request = new CreateQuestRequest("제목", "설명", 500, 37.58, 126.97);
         when(userRepository.findById(1L)).thenReturn(Optional.of(author));
 
         assertThatThrownBy(() -> questService.create(1L, request, null))
@@ -110,7 +110,7 @@ class QuestServiceTest {
     @Test
     @DisplayName("존재하지 않는 사용자는 퀘스트를 등록할 수 없다")
     void create_userNotFound_throwsNotFound() {
-        CreateQuestRequest request = new CreateQuestRequest("제목", "설명", 500);
+        CreateQuestRequest request = new CreateQuestRequest("제목", "설명", 500, 37.58, 126.97);
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> questService.create(1L, request, null))
@@ -119,18 +119,40 @@ class QuestServiceTest {
     }
 
     @Test
-    @DisplayName("동네별 퀘스트 목록을 조회한다")
-    void findByNeighborhood_returnsQuests() {
+    @DisplayName("동네별 퀘스트 목록을 조회하고 거리를 계산한다")
+    void findByNeighborhood_returnsQuestsWithDistance() {
         User author = User.builder().email("a@test.com").password("pw").nickname("nick")
                 .neighborhood(neighborhood()).build();
         Quest quest = Quest.builder().title("제목").rewardPoint(100).author(author)
-                .neighborhood(author.getNeighborhood()).build();
+                .neighborhood(author.getNeighborhood())
+                .latitude(BigDecimal.valueOf(37.58)).longitude(BigDecimal.valueOf(126.97)).build();
         when(questRepository.findByNeighborhoodId(1L)).thenReturn(List.of(quest));
 
-        List<QuestResponse> responses = questService.findByNeighborhood(1L);
+        List<QuestResponse> responses = questService.findByNeighborhood(1L, 37.58, 126.97);
 
         assertThat(responses).hasSize(1);
         assertThat(responses.get(0).title()).isEqualTo("제목");
+        assertThat(responses.get(0).distanceMeters()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("퀘스트 목록을 현재 위치로부터 가까운 순으로 정렬한다")
+    void findByNeighborhood_sortsByDistanceAscending() {
+        User author = User.builder().email("a@test.com").password("pw").nickname("nick")
+                .neighborhood(neighborhood()).build();
+        Quest near = Quest.builder().title("가까운 퀘스트").rewardPoint(100).author(author)
+                .neighborhood(author.getNeighborhood())
+                .latitude(BigDecimal.valueOf(37.5800)).longitude(BigDecimal.valueOf(126.9700)).build();
+        Quest far = Quest.builder().title("먼 퀘스트").rewardPoint(100).author(author)
+                .neighborhood(author.getNeighborhood())
+                .latitude(BigDecimal.valueOf(37.5219)).longitude(BigDecimal.valueOf(126.9245)).build();
+        when(questRepository.findByNeighborhoodId(1L)).thenReturn(List.of(far, near));
+
+        List<QuestResponse> responses = questService.findByNeighborhood(1L, 37.5805, 126.9705);
+
+        assertThat(responses).extracting(QuestResponse::title)
+                .containsExactly("가까운 퀘스트", "먼 퀘스트");
+        assertThat(responses.get(0).distanceMeters()).isLessThan(responses.get(1).distanceMeters());
     }
 
     @Test
@@ -140,7 +162,8 @@ class QuestServiceTest {
                 .neighborhood(neighborhood()).build();
         ReflectionTestUtils.setField(author, "id", 1L);
         Quest quest = Quest.builder().title("제목").rewardPoint(100).author(author)
-                .neighborhood(author.getNeighborhood()).build();
+                .neighborhood(author.getNeighborhood())
+                .latitude(BigDecimal.valueOf(37.58)).longitude(BigDecimal.valueOf(126.97)).build();
         when(questRepository.findById(10L)).thenReturn(Optional.of(quest));
 
         questService.delete(1L, 10L);
@@ -155,7 +178,8 @@ class QuestServiceTest {
                 .neighborhood(neighborhood()).build();
         ReflectionTestUtils.setField(author, "id", 1L);
         Quest quest = Quest.builder().title("제목").rewardPoint(100).author(author)
-                .neighborhood(author.getNeighborhood()).build();
+                .neighborhood(author.getNeighborhood())
+                .latitude(BigDecimal.valueOf(37.58)).longitude(BigDecimal.valueOf(126.97)).build();
         when(questRepository.findById(10L)).thenReturn(Optional.of(quest));
 
         assertThatThrownBy(() -> questService.delete(2L, 10L))

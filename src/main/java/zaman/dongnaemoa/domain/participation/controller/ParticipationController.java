@@ -2,6 +2,7 @@ package zaman.dongnaemoa.domain.participation.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -22,6 +23,7 @@ import zaman.dongnaemoa.domain.participation.dto.ParticipationResponse;
 import zaman.dongnaemoa.domain.participation.dto.RejectParticipationRequest;
 import zaman.dongnaemoa.domain.participation.dto.SubmitProofRequest;
 import zaman.dongnaemoa.domain.participation.service.ParticipationService;
+import zaman.dongnaemoa.global.multipart.MultipartJsonParser;
 import zaman.dongnaemoa.global.security.CustomUserDetails;
 
 @Tag(name = "Participation", description = "퀘스트 참여/인증/완료 승인 API. 참여 흐름: 참여(JOINED) → 인증 제출(SUBMITTED) → "
@@ -33,6 +35,7 @@ import zaman.dongnaemoa.global.security.CustomUserDetails;
 public class ParticipationController {
 
     private final ParticipationService participationService;
+    private final MultipartJsonParser multipartJsonParser;
 
     @Operation(
             summary = "퀘스트 참여",
@@ -57,7 +60,8 @@ public class ParticipationController {
             summary = "퀘스트 완료 인증 제출",
             description = "참여자 본인이 퀘스트 수행 완료 인증(이미지/설명)을 제출한다. 제출 시 상태가 SUBMITTED로 바뀌고 "
                     + "퀘스트 등록자의 승인/반려를 기다리게 된다. multipart/form-data로 요청하며, "
-                    + "request 파트는 JSON(SubmitProofRequest), image 파트는 인증 이미지 파일(선택)이다."
+                    + "request 파트는 SubmitProofRequest를 직렬화한 JSON 문자열, image 파트는 인증 이미지 파일(선택)이다. "
+                    + "request 파트에 담을 JSON의 필드: proofDescription(문자열, 선택, 인증 설명)."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "제출 성공 (상태: SUBMITTED)"),
@@ -68,9 +72,13 @@ public class ParticipationController {
     public CommonApiResponse<ParticipationResponse> submitProof(
             @AuthenticationPrincipal CustomUserDetails principal,
             @Parameter(description = "참여 ID") @PathVariable Long participationId,
-            @RequestPart("request") SubmitProofRequest request,
+            @Parameter(
+                    description = "SubmitProofRequest를 직렬화한 JSON 문자열. 필드 구조는 아래 스키마 참고.",
+                    schema = @Schema(type = "string", example = "{\"proofDescription\":\"쓰레기를 다 치웠습니다.\"}"))
+            @RequestPart("request") String requestJson,
             @Parameter(description = "인증 이미지 파일 (선택)")
             @RequestPart(value = "image", required = false) MultipartFile image) {
+        SubmitProofRequest request = multipartJsonParser.parse(requestJson, SubmitProofRequest.class);
         ParticipationResponse response =
                 participationService.submitProof(principal.getUserId(), participationId, request, image);
         return CommonApiResponse.success("인증 제출에 성공했습니다.", response);

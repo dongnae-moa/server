@@ -15,6 +15,12 @@ public record CreateQuestRequest(
         String description,
 
         @Schema(description = "완료 시 지급할 보상 포인트", example = "500")
-        @NotNull @Positive Integer rewardPoint
+        @NotNull @Positive Integer rewardPoint,
+
+        @Schema(description = "퀘스트가 진행되는 위치의 위도", example = "37.5665")
+        @NotNull Double latitude,
+
+        @Schema(description = "퀘스트가 진행되는 위치의 경도", example = "126.9780")
+        @NotNull Double longitude
 ) {
 }
