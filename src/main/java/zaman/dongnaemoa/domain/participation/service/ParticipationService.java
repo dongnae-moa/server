@@ -39,6 +39,9 @@ public class ParticipationService {
         if (quest.getAuthor().getId().equals(userId)) {
             throw new ExpectedException("본인이 등록한 퀘스트에는 참여할 수 없습니다.", HttpStatus.BAD_REQUEST);
         }
+        if (quest.getStatus() != QuestStatus.RECRUITING) {
+            throw new ExpectedException("모집 중인 퀘스트에만 참여할 수 있습니다.", HttpStatus.CONFLICT);
+        }
         participationRepository.findByQuestIdAndParticipantId(questId, userId).ifPresent(p -> {
             throw new ExpectedException("이미 참여한 퀘스트입니다.", HttpStatus.CONFLICT);
         });
@@ -59,7 +62,11 @@ public class ParticipationService {
         }
         String proofImageUrl = (proofImage == null || proofImage.isEmpty())
                 ? null : fileStorageService.store(proofImage);
-        participation.submitProof(proofImageUrl, request.proofDescription(), LocalDateTime.now());
+        try {
+            participation.submitProof(proofImageUrl, request.proofDescription(), LocalDateTime.now());
+        } catch (IllegalStateException e) {
+            throw new ExpectedException(e.getMessage(), HttpStatus.CONFLICT);
+        }
         return ParticipationResponse.from(participation);
     }
 

@@ -65,6 +65,9 @@ public class QuestParticipation extends BaseTimeEntity {
     }
 
     public void submitProof(String proofImageUrl, String proofDescription, LocalDateTime submittedAt) {
+        if (this.status != ParticipationStatus.JOINED) {
+            throw new IllegalStateException("참여 중 상태에서만 인증을 제출할 수 있습니다. 현재 상태: " + this.status);
+        }
         this.proofImageUrl = proofImageUrl;
         this.proofDescription = proofDescription;
         this.submittedAt = submittedAt;

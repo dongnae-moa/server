@@ -118,6 +118,22 @@ class ParticipationServiceTest {
     }
 
     @Test
+    @DisplayName("모집 중이 아닌 퀘스트에는 참여할 수 없다")
+    void join_questNotRecruiting_throwsConflict() {
+        User author = user(1L, "author@test.com");
+        User participant = user(2L, "participant@test.com");
+        Quest quest = quest(author, 500);
+        quest.changeStatus(QuestStatus.COMPLETED);
+
+        when(questRepository.findById(100L)).thenReturn(Optional.of(quest));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(participant));
+
+        assertThatThrownBy(() -> participationService.join(2L, 100L))
+                .isInstanceOf(ExpectedException.class)
+                .hasMessageContaining("모집 중인 퀘스트");
+    }
+
+    @Test
     @DisplayName("본인의 참여 건에 인증(이미지 없이)을 제출한다")
     void submitProof_withoutImage_success() {
         User author = user(1L, "author@test.com");
@@ -165,6 +181,21 @@ class ParticipationServiceTest {
                 999L, 5L, new SubmitProofRequest("완료했습니다."), null))
                 .isInstanceOf(ExpectedException.class)
                 .hasMessageContaining("본인의 참여 건만");
+    }
+
+    @Test
+    @DisplayName("이미 제출된 참여 건은 다시 인증을 제출할 수 없다")
+    void submitProof_alreadySubmitted_throwsConflict() {
+        User author = user(1L, "author@test.com");
+        User participant = user(2L, "participant@test.com");
+        Quest quest = quest(author, 500);
+        QuestParticipation participation = QuestParticipation.builder().quest(quest).participant(participant).build();
+        participation.submitProof(null, "먼저 제출", java.time.LocalDateTime.now());
+        when(participationRepository.findById(5L)).thenReturn(Optional.of(participation));
+
+        assertThatThrownBy(() -> participationService.submitProof(
+                2L, 5L, new SubmitProofRequest("다시 제출"), null))
+                .isInstanceOf(ExpectedException.class);
     }
 
     @Test
