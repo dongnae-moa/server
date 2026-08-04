@@ -72,13 +72,21 @@ public class QuestParticipation extends BaseTimeEntity {
     }
 
     public void approve(LocalDateTime decidedAt) {
+        requireSubmitted();
         this.status = ParticipationStatus.APPROVED;
         this.decidedAt = decidedAt;
     }
 
     public void reject(String rejectionReason, LocalDateTime decidedAt) {
+        requireSubmitted();
         this.status = ParticipationStatus.REJECTED;
         this.rejectionReason = rejectionReason;
         this.decidedAt = decidedAt;
+    }
+
+    private void requireSubmitted() {
+        if (this.status != ParticipationStatus.SUBMITTED) {
+            throw new IllegalStateException("인증 제출 상태에서만 승인/반려할 수 있습니다. 현재 상태: " + this.status);
+        }
     }
 }

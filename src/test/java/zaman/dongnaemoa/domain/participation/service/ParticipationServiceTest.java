@@ -174,6 +174,7 @@ class ParticipationServiceTest {
         User participant = user(2L, "participant@test.com");
         Quest quest = quest(author, 500);
         QuestParticipation participation = QuestParticipation.builder().quest(quest).participant(participant).build();
+        participation.submitProof(null, "인증합니다", java.time.LocalDateTime.now());
         when(participationRepository.findById(5L)).thenReturn(Optional.of(participation));
 
         ParticipationResponse response = participationService.approve(1L, 5L);
@@ -205,6 +206,7 @@ class ParticipationServiceTest {
         User participant = user(2L, "participant@test.com");
         Quest quest = quest(author, 500);
         QuestParticipation participation = QuestParticipation.builder().quest(quest).participant(participant).build();
+        participation.submitProof(null, "인증합니다", java.time.LocalDateTime.now());
         when(participationRepository.findById(5L)).thenReturn(Optional.of(participation));
 
         ParticipationResponse response = participationService.reject(1L, 5L, "인증 불충분");
@@ -212,6 +214,22 @@ class ParticipationServiceTest {
         assertThat(response.status()).isEqualTo(ParticipationStatus.REJECTED);
         assertThat(response.rejectionReason()).isEqualTo("인증 불충분");
         assertThat(participant.getPoint()).isZero();
+        verify(pointHistoryRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("이미 승인된 참여 건은 다시 승인할 수 없다")
+    void approve_alreadyApproved_throwsConflict() {
+        User author = user(1L, "author@test.com");
+        User participant = user(2L, "participant@test.com");
+        Quest quest = quest(author, 500);
+        QuestParticipation participation = QuestParticipation.builder().quest(quest).participant(participant).build();
+        participation.submitProof(null, "인증합니다", java.time.LocalDateTime.now());
+        participation.approve(java.time.LocalDateTime.now());
+        when(participationRepository.findById(5L)).thenReturn(Optional.of(participation));
+
+        assertThatThrownBy(() -> participationService.approve(1L, 5L))
+                .isInstanceOf(ExpectedException.class);
         verify(pointHistoryRepository, never()).save(any());
     }
 
