@@ -22,14 +22,18 @@ Environment=DB_URL=jdbc:postgresql://localhost:5432/dongnaemoa
 Environment=DB_USERNAME=postgres
 Environment=DB_PASSWORD=여기에_실제_DB_비밀번호
 Environment=JWT_SECRET=여기에_실제_JWT_시크릿
+Environment=GROQ_API_KEY=여기에_실제_Groq_API_키
 
 [Install]
 WantedBy=multi-user.target
 EOF
 ```
 
-> `DB_PASSWORD`, `JWT_SECRET` 값은 실제 운영값으로 교체할 것.
-> 다른 방식(예: `.env`, `application-prod.yml`)으로 이미 환경변수를 주입 중이라면 `Environment=` 두 줄은 생략해도 된다.
+> `DB_PASSWORD`, `JWT_SECRET`, `GROQ_API_KEY` 값은 실제 운영값으로 교체할 것.
+> 다른 방식(예: `.env`, `application-prod.yml`)으로 이미 환경변수를 주입 중이라면 `Environment=` 줄은 생략해도 된다.
+> `GROQ_API_KEY`는 https://console.groq.com 에서 발급받는다. 비워두면 퀘스트 등록 시 AI 분석 대신
+> 고정 기본값(minutes=10, rewardPoint=50, difficulty=NORMAL, checkpoints=[])으로 자동 대체되어
+> 서비스는 정상 동작한다(등록 자체가 막히지 않음).
 
 ## 2. 서비스 등록 및 활성화
 

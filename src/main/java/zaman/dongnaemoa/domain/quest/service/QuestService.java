@@ -12,9 +12,12 @@ import team.themoment.sdk.exception.ExpectedException;
 import zaman.dongnaemoa.domain.quest.dto.CreateQuestRequest;
 import zaman.dongnaemoa.domain.quest.dto.QuestResponse;
 import zaman.dongnaemoa.domain.quest.entity.Quest;
+import zaman.dongnaemoa.domain.quest.entity.QuestDifficulty;
 import zaman.dongnaemoa.domain.quest.repository.QuestRepository;
 import zaman.dongnaemoa.domain.user.entity.User;
 import zaman.dongnaemoa.domain.user.repository.UserRepository;
+import zaman.dongnaemoa.global.ai.GroqQuestAnalyzer;
+import zaman.dongnaemoa.global.ai.GroqQuestAnalyzer.QuestAnalysisResult;
 import zaman.dongnaemoa.global.geo.GeoUtils;
 import zaman.dongnaemoa.global.storage.FileStorageService;
 
@@ -25,6 +28,7 @@ public class QuestService {
     private final QuestRepository questRepository;
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
+    private final GroqQuestAnalyzer groqQuestAnalyzer;
 
     @Transactional
     public QuestResponse create(Long authorId, CreateQuestRequest request, MultipartFile image) {
@@ -35,12 +39,16 @@ public class QuestService {
         }
 
         String imageUrl = (image == null || image.isEmpty()) ? null : fileStorageService.store(image);
+        QuestAnalysisResult analysis = groqQuestAnalyzer.analyze(request.title(), request.description());
 
         Quest quest = Quest.builder()
                 .title(request.title())
                 .description(request.description())
                 .imageUrl(imageUrl)
-                .rewardPoint(request.rewardPoint())
+                .rewardPoint(analysis.rewardPoint())
+                .minutes(analysis.minutes())
+                .difficulty(parseDifficulty(analysis.difficulty()))
+                .checkpoints(analysis.checkpoints())
                 .author(author)
                 .neighborhood(author.getNeighborhood())
                 .latitude(BigDecimal.valueOf(request.latitude()))
@@ -48,6 +56,14 @@ public class QuestService {
                 .build();
 
         return QuestResponse.from(questRepository.save(quest));
+    }
+
+    private QuestDifficulty parseDifficulty(String difficulty) {
+        try {
+            return QuestDifficulty.valueOf(difficulty);
+        } catch (Exception e) {
+            return QuestDifficulty.NORMAL;
+        }
     }
 
     @Transactional(readOnly = true)

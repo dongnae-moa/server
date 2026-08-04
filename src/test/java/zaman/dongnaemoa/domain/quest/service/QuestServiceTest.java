@@ -27,6 +27,8 @@ import zaman.dongnaemoa.domain.quest.entity.Quest;
 import zaman.dongnaemoa.domain.quest.repository.QuestRepository;
 import zaman.dongnaemoa.domain.user.entity.User;
 import zaman.dongnaemoa.domain.user.repository.UserRepository;
+import zaman.dongnaemoa.global.ai.GroqQuestAnalyzer;
+import zaman.dongnaemoa.global.ai.GroqQuestAnalyzer.QuestAnalysisResult;
 import zaman.dongnaemoa.global.storage.FileStorageService;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,11 +43,19 @@ class QuestServiceTest {
     @Mock
     private FileStorageService fileStorageService;
 
+    @Mock
+    private GroqQuestAnalyzer groqQuestAnalyzer;
+
     private QuestService questService;
 
     @BeforeEach
     void setUp() {
-        questService = new QuestService(questRepository, userRepository, fileStorageService);
+        questService = new QuestService(questRepository, userRepository, fileStorageService, groqQuestAnalyzer);
+    }
+
+    private void stubAnalysis(int rewardPoint, int minutes, String difficulty, List<String> checkpoints) {
+        when(groqQuestAnalyzer.analyze(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any()))
+                .thenReturn(new QuestAnalysisResult(minutes, rewardPoint, difficulty, checkpoints));
     }
 
     private Neighborhood neighborhood() {
@@ -64,9 +74,11 @@ class QuestServiceTest {
     void create_withoutImage_success() {
         User author = User.builder().email("a@test.com").password("pw").nickname("nick")
                 .neighborhood(neighborhood()).build();
-        CreateQuestRequest request = new CreateQuestRequest("쓰레기 치우기", "설명", 500, 37.58, 126.97);
+        CreateQuestRequest request = new CreateQuestRequest("쓰레기 치우기", "설명", 37.58, 126.97);
+        stubAnalysis(30, 6, "NORMAL", List.of("확인1", "확인2"));
         Quest saved = Quest.builder().title(request.title()).description(request.description())
-                .rewardPoint(request.rewardPoint()).author(author).neighborhood(author.getNeighborhood()).build();
+                .rewardPoint(30).minutes(6).difficulty(zaman.dongnaemoa.domain.quest.entity.QuestDifficulty.NORMAL)
+                .checkpoints(List.of("확인1", "확인2")).author(author).neighborhood(author.getNeighborhood()).build();
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(author));
         when(questRepository.save(any(Quest.class))).thenReturn(saved);
@@ -75,6 +87,10 @@ class QuestServiceTest {
 
         assertThat(response.title()).isEqualTo("쓰레기 치우기");
         assertThat(response.imageUrl()).isNull();
+        assertThat(response.rewardPoint()).isEqualTo(30);
+        assertThat(response.minutes()).isEqualTo(6);
+        assertThat(response.difficulty()).isEqualTo("보통");
+        assertThat(response.checkpoints()).containsExactly("확인1", "확인2");
         verify(fileStorageService, never()).store(any());
     }
 
@@ -83,7 +99,8 @@ class QuestServiceTest {
     void create_withImage_storesFileAndSetsUrl() {
         User author = User.builder().email("a@test.com").password("pw").nickname("nick")
                 .neighborhood(neighborhood()).build();
-        CreateQuestRequest request = new CreateQuestRequest("쓰레기 치우기", "설명", 500, 37.58, 126.97);
+        CreateQuestRequest request = new CreateQuestRequest("쓰레기 치우기", "설명", 37.58, 126.97);
+        stubAnalysis(30, 6, "NORMAL", List.of());
         MultipartFile image = new MockMultipartFile("image", "photo.jpg", "image/jpeg", "content".getBytes());
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(author));
@@ -99,7 +116,7 @@ class QuestServiceTest {
     @DisplayName("동네에 가입하지 않은 사용자는 퀘스트를 등록할 수 없다")
     void create_userWithoutNeighborhood_throwsBadRequest() {
         User author = User.builder().email("a@test.com").password("pw").nickname("nick").neighborhood(null).build();
-        CreateQuestRequest request = new CreateQuestRequest("제목", "설명", 500, 37.58, 126.97);
+        CreateQuestRequest request = new CreateQuestRequest("제목", "설명", 37.58, 126.97);
         when(userRepository.findById(1L)).thenReturn(Optional.of(author));
 
         assertThatThrownBy(() -> questService.create(1L, request, null))
@@ -110,7 +127,7 @@ class QuestServiceTest {
     @Test
     @DisplayName("존재하지 않는 사용자는 퀘스트를 등록할 수 없다")
     void create_userNotFound_throwsNotFound() {
-        CreateQuestRequest request = new CreateQuestRequest("제목", "설명", 500, 37.58, 126.97);
+        CreateQuestRequest request = new CreateQuestRequest("제목", "설명", 37.58, 126.97);
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> questService.create(1L, request, null))

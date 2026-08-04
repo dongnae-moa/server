@@ -1,6 +1,8 @@
 package zaman.dongnaemoa.domain.quest.entity;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -12,6 +14,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -41,6 +45,17 @@ public class Quest extends BaseTimeEntity {
     @Column(nullable = false)
     private Integer rewardPoint;
 
+    private Integer minutes;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private QuestDifficulty difficulty;
+
+    @ElementCollection
+    @CollectionTable(name = "quest_checkpoint", joinColumns = @JoinColumn(name = "quest_id"))
+    @Column(name = "content")
+    private List<String> checkpoints = new ArrayList<>();
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private QuestStatus status;
@@ -61,11 +76,15 @@ public class Quest extends BaseTimeEntity {
 
     @Builder
     private Quest(String title, String description, String imageUrl, Integer rewardPoint,
+                   Integer minutes, QuestDifficulty difficulty, List<String> checkpoints,
                    User author, Neighborhood neighborhood, BigDecimal latitude, BigDecimal longitude) {
         this.title = title;
         this.description = description;
         this.imageUrl = imageUrl;
         this.rewardPoint = rewardPoint;
+        this.minutes = minutes;
+        this.difficulty = difficulty;
+        this.checkpoints = checkpoints == null ? new ArrayList<>() : checkpoints;
         this.author = author;
         this.neighborhood = neighborhood;
         this.latitude = latitude;

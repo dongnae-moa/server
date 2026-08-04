@@ -45,9 +45,10 @@ public class QuestController {
                     + "request 파트에 담을 JSON의 필드: "
                     + "title(문자열, 필수, 최대 100자), "
                     + "description(문자열, 선택), "
-                    + "rewardPoint(정수, 필수, 양수), "
                     + "latitude(실수, 필수, 퀘스트가 진행되는 위치의 위도), "
-                    + "longitude(실수, 필수, 퀘스트가 진행되는 위치의 경도)."
+                    + "longitude(실수, 필수, 퀘스트가 진행되는 위치의 경도). "
+                    + "예상 소요시간(minutes), 보상 포인트(rewardPoint), 난이도(difficulty), 확인 목록(checkpoints)은 "
+                    + "제목/설명을 바탕으로 AI가 자동으로 산정하므로 요청에 포함하지 않는다."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "등록 성공"),
@@ -61,7 +62,7 @@ public class QuestController {
                     description = "CreateQuestRequest를 직렬화한 JSON 문자열. 필드 구조는 아래 스키마 참고.",
                     schema = @Schema(type = "string",
                             example = "{\"title\":\"공원 쓰레기 치우기\",\"description\":\"OO공원 벤치 주변에 버려진 쓰레기를 "
-                                    + "치우고 인증샷을 남겨주세요.\",\"rewardPoint\":500,"
+                                    + "치우고 인증샷을 남겨주세요.\","
                                     + "\"latitude\":37.5665,\"longitude\":126.9780}"))
             @RequestPart("request") String requestJson,
             @Parameter(description = "퀘스트 이미지 파일 (선택)")
