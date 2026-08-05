@@ -8,9 +8,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -54,6 +56,24 @@ public class ParticipationController {
             @Parameter(description = "참여할 퀘스트 ID") @PathVariable Long questId) {
         ParticipationResponse response = participationService.join(principal.getUserId(), questId);
         return CommonApiResponse.success("퀘스트 참여에 성공했습니다.", response);
+    }
+
+    @Operation(
+            summary = "퀘스트 참여자 목록 조회",
+            description = "퀘스트 등록자가 해당 퀘스트에 참여한 참여자 목록을 조회한다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "403", description = "퀘스트 등록자 본인이 아님"),
+            @ApiResponse(responseCode = "404", description = "퀘스트를 찾을 수 없음")
+    })
+    @GetMapping("/quests/{questId}/participations")
+    public CommonApiResponse<List<ParticipationResponse>> getParticipants(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @Parameter(description = "퀘스트 ID") @PathVariable Long questId) {
+        List<ParticipationResponse> response =
+                participationService.getParticipants(principal.getUserId(), questId);
+        return CommonApiResponse.success("참여자 목록 조회에 성공했습니다.", response);
     }
 
     @Operation(

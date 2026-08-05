@@ -1,6 +1,7 @@
 package zaman.dongnaemoa.domain.participation.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -109,6 +110,16 @@ public class ParticipationService {
             throw new ExpectedException(e.getMessage(), HttpStatus.CONFLICT);
         }
         return ParticipationResponse.from(participation);
+    }
+
+    public List<ParticipationResponse> getParticipants(Long authorId, Long questId) {
+        Quest quest = getQuest(questId);
+        if (!quest.getAuthor().getId().equals(authorId)) {
+            throw new ExpectedException("퀘스트 등록자만 참여자 목록을 조회할 수 있습니다.", HttpStatus.FORBIDDEN);
+        }
+        return participationRepository.findByQuestId(questId).stream()
+                .map(ParticipationResponse::from)
+                .toList();
     }
 
     private Quest getQuest(Long questId) {
