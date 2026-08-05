@@ -25,8 +25,11 @@ public class GroqQuestAnalyzer {
                     + "\"rewardPoint\":정수(10~200),\"difficulty\":\"EASY\"|\"NORMAL\"|\"HARD\","
                     + "\"checkpoints\":[\"문자열\",\"문자열\"]}\n"
                     + "checkpoints는 2~4개, 각 15자 이내의 한국어 확인 항목.\n"
-                    + "단, 현장에 가지 않고 상태를 신고/제보만 하면 되는 퀘스트(예: 불법투기 신고, 파손 신고, "
-                    + "민원 제보)라면 minutes는 1, rewardPoint는 10으로 고정해.";
+                    + "단, 참여자가 '사진을 찍어 상태만 확인/기록'하고 끝나며 쓰레기를 줍거나 옮기거나 청소하는 "
+                    + "등 몸으로 하는 처리 작업이 전혀 없는 경우에만 minutes는 1, rewardPoint는 10으로 고정해. "
+                    + "(예: 불법투기 상태 확인, 시설 파손 확인, 안내판 훼손 확인)\n"
+                    + "반대로 쓰레기 줍기/치우기/청소처럼 실제로 몸을 움직여 정리하는 작업이면 신고가 아니므로 "
+                    + "일반 기준(minutes 5~30, rewardPoint 10~200)을 그대로 적용해.";
 
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
